@@ -1,0 +1,27 @@
+[
+  {
+    "id": "76c95abc-9708-4328-8409-07818b797b3a",
+    "name": "Priya Sharama",
+    "email": "priya@gmail.com",
+    "phone": "9897890000",
+    "address": "T-510/C-3A Gali No:2 baljeet nagar New Delhi :110008",
+    "createdAt": "2026-09-08T09:48:17.867Z"
+  },
+  {
+    "id": "3f5338d0-f98b-44be-b9e8-58b29c305ec2",
+    "name": "Sumit",
+    "email": "sum@gmail.com",
+    "phone": "1234567890",
+    "address": "123 ABC Road Gali No:2",
+    "createdAt": "2026-09-08T09:56:01.679Z"
+  },
+  {
+    "id": "a894e4ce-b512-4a6e-9533-abda1661eee8",
+    "name": "Rahul",
+    "email": "raj@gmail.com",
+    "phone": "1234567899",
+    "address": "good",
+    "createdAt": "2026-09-08T09:56:47.024Z",
+    "updatedAt": "2026-09-08T09:56:56.964Z"
+  }
+]
