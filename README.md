@@ -83,11 +83,13 @@ Runs on `http://localhost:3000` and talks to the API at `http://localhost:5000`.
 ## Validation Rules
 
 Applied on both the client (for instant feedback) and the server (as the
-source of truth — a client can always be bypassed with a direct API call):
+source of truth — a client can always be bypassed with a direct API call).
+On the frontend, fields are validated live as the user types/blurs, not just
+on submit:
 
-- **Name:** required, min 2 characters
-- **Email:** required, must match a standard email pattern
-- **Phone:** required, digits/spaces/`+`/`-`/parentheses, 7–15 characters
+- **Name:** required, min 2 characters — validated on blur, then live as you type
+- **Email:** required, must match a standard email pattern — validated on blur, then live as you type
+- **Phone:** required, exactly 10 digits (or 12 digits with a `91` country code prefix). Non-digit characters are stripped automatically and typing is capped at 10 digits — you physically can't type an 11th digit. A green "Looks good ✓" message confirms once 10 valid digits are entered.
 - **Address:** optional, max 200 characters
 
 ## Edge Cases Handled
@@ -109,6 +111,9 @@ source of truth — a client can always be bypassed with a direct API call):
 - Empty contact list shows a friendly empty state instead of a blank table
 - Failed initial load shows an error message with a Retry button instead of a blank screen
 - Search input is debounced (300ms) so it doesn't fire a request on every keystroke
+- Fields show validation errors on blur (not just on submit) — a wrong email is flagged the moment the user tabs away, not after they hit "Add Contact"
+- Phone input only accepts digits and auto-truncates at 10 characters, so it's impossible to type a malformed or overly long number in the first place
+- A field-level success indicator confirms once the phone number is complete and valid
 
 ## What Was Intentionally Skipped
 
