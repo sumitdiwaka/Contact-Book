@@ -1,36 +1,32 @@
 const { v4: uuidv4 } = require('uuid');
-const { readContacts, writeContacts } = require('../data/store');
+const Contact = require('../models/Contact');
 const { validateContact } = require('../utils/validate');
 
-function getAllContacts(req, res) {
-  const contacts = readContacts();
+async function getAllContacts(req, res) {
   const { search } = req.query;
 
   if (search && search.trim()) {
-    const term = search.trim().toLowerCase();
-    const filtered = contacts.filter(
-      (c) =>
-        c.name.toLowerCase().includes(term) ||
-        c.email.toLowerCase().includes(term) ||
-        c.phone.toLowerCase().includes(term)
-    );
+    const term = search.trim();
+    const regex = new RegExp(term, 'i');
+    const filtered = await Contact.find({
+      $or: [{ name: regex }, { email: regex }, { phone: regex }],
+    });
     return res.json(filtered);
   }
 
+  const contacts = await Contact.find();
   res.json(contacts);
 }
 
-function getContactById(req, res) {
-  const contacts = readContacts();
-  const contact = contacts.find((c) => c.id === req.params.id);
-
+async function getContactById(req, res) {
+  const contact = await Contact.findOne({ id: req.params.id });
   if (!contact) {
     return res.status(404).json({ message: 'Contact not found' });
   }
   res.json(contact);
 }
 
-function createContact(req, res) {
+async function createContact(req, res) {
   const { name, email, phone, address } = req.body || {};
   const errors = validateContact({ name, email, phone, address });
 
@@ -38,34 +34,26 @@ function createContact(req, res) {
     return res.status(400).json({ message: 'Validation failed', errors });
   }
 
-  const contacts = readContacts();
-  const emailTaken = contacts.some(
-    (c) => c.email.toLowerCase() === email.trim().toLowerCase()
-  );
+  const emailTaken = await Contact.findOne({ email: email.trim().toLowerCase() });
   if (emailTaken) {
     return res.status(409).json({ message: 'A contact with this email already exists' });
   }
 
-  const newContact = {
+  const newContact = await Contact.create({
     id: uuidv4(),
     name: name.trim(),
     email: email.trim().toLowerCase(),
     phone: phone.trim(),
     address: address ? address.trim() : '',
     createdAt: new Date().toISOString(),
-  };
-
-  contacts.push(newContact);
-  writeContacts(contacts);
+  });
 
   res.status(201).json(newContact);
 }
 
-function updateContact(req, res) {
-  const contacts = readContacts();
-  const index = contacts.findIndex((c) => c.id === req.params.id);
-
-  if (index === -1) {
+async function updateContact(req, res) {
+  const existing = await Contact.findOne({ id: req.params.id });
+  if (!existing) {
     return res.status(404).json({ message: 'Contact not found' });
   }
 
@@ -76,36 +64,29 @@ function updateContact(req, res) {
     return res.status(400).json({ message: 'Validation failed', errors });
   }
 
-  const emailTaken = contacts.some(
-    (c) => c.id !== req.params.id && c.email.toLowerCase() === email.trim().toLowerCase()
-  );
+  const emailTaken = await Contact.findOne({
+    email: email.trim().toLowerCase(),
+    id: { $ne: req.params.id },
+  });
   if (emailTaken) {
     return res.status(409).json({ message: 'Another contact already uses this email' });
   }
 
-  contacts[index] = {
-    ...contacts[index],
-    name: name.trim(),
-    email: email.trim().toLowerCase(),
-    phone: phone.trim(),
-    address: address ? address.trim() : '',
-    updatedAt: new Date().toISOString(),
-  };
+  existing.name = name.trim();
+  existing.email = email.trim().toLowerCase();
+  existing.phone = phone.trim();
+  existing.address = address ? address.trim() : '';
+  existing.updatedAt = new Date().toISOString();
+  await existing.save();
 
-  writeContacts(contacts);
-  res.json(contacts[index]);
+  res.json(existing);
 }
 
-function deleteContact(req, res) {
-  const contacts = readContacts();
-  const index = contacts.findIndex((c) => c.id === req.params.id);
-
-  if (index === -1) {
+async function deleteContact(req, res) {
+  const deleted = await Contact.findOneAndDelete({ id: req.params.id });
+  if (!deleted) {
     return res.status(404).json({ message: 'Contact not found' });
   }
-
-  const [deleted] = contacts.splice(index, 1);
-  writeContacts(contacts);
   res.json(deleted);
 }
 
